@@ -29,6 +29,7 @@ export function detectLang(text: string): Lang {
 type Intent =
   | { kind: "route"; to: string; accessible: boolean }
   | { kind: "nearest"; poi: PoiKind; tags: string[]; accessible: boolean }
+  | { kind: "askSeat"; accessible: boolean }
   | { kind: "crowd" }
   | { kind: "transport" }
   | { kind: "help" }
@@ -53,6 +54,9 @@ export function resolveIntent(text: string): Intent {
   const gate = t.match(GATE_RE);
   if (gate && /exit|get to|how|salida|llego|sortie|saída|كيف|कैसे|جою/i.test(t))
     return { kind: "route", to: `gate ${gate[1]}`, accessible };
+
+  // "my seat" without a section number → ask for it (resolved via seat context when available)
+  if (/seat|asiento|siège|assento|सीट|مقعد/i.test(t)) return { kind: "askSeat", accessible };
 
   if (/halal|حلال|हलाल/i.test(t)) return { kind: "nearest", poi: "food", tags: ["halal"], accessible };
   if (/vegetari|vegan|शाकाहारी|نباتي/i.test(t)) return { kind: "nearest", poi: "food", tags: ["vegetarian"], accessible };
@@ -84,6 +88,7 @@ const M: Record<Lang, Record<string, string>> = {
     help: "I can help you find your seat, food, restrooms, exits and transport — in your language. Try: “Take me to seat 214”.",
     unknown: "I don't have that information. The Information Desk on the North Concourse (near Gate A) can help with anything else!",
     demoNote: "(Demo mode — AI is offline, but navigation still works.)",
+    askSeat: "Tell me your seat section number (for example 214) and I'll guide you there!",
     notFound: "I couldn't find that place. Please check with the Information Desk near Gate A.",
   },
   es: {
@@ -94,6 +99,7 @@ const M: Record<Lang, Record<string, string>> = {
     help: "Puedo ayudarte a encontrar tu asiento, comida, baños, salidas y transporte — en tu idioma. Prueba: «Llévame al asiento 214».",
     unknown: "No tengo esa información. ¡El mostrador de información en el pasillo norte (junto a la Puerta A) puede ayudarte!",
     demoNote: "(Modo demo — la IA está desconectada, pero la navegación funciona.)",
+    askSeat: "Dime el número de tu sección (por ejemplo 214) y te llevo hasta allí.",
     notFound: "No encontré ese lugar. Consulta el mostrador de información junto a la Puerta A.",
   },
   fr: {
@@ -104,6 +110,7 @@ const M: Record<Lang, Record<string, string>> = {
     help: "Je peux vous aider à trouver votre siège, à manger, les toilettes, les sorties et les transports — dans votre langue. Essayez : « Emmène-moi au siège 214 ».",
     unknown: "Je n'ai pas cette information. Le comptoir d'information du hall nord (près de la Porte A) pourra vous aider !",
     demoNote: "(Mode démo — l'IA est hors ligne, mais la navigation fonctionne.)",
+    askSeat: "Indiquez le numéro de votre section (par exemple 214) et je vous y guide.",
     notFound: "Je n'ai pas trouvé cet endroit. Voyez le comptoir d'information près de la Porte A.",
   },
   ar: {
@@ -114,6 +121,7 @@ const M: Record<Lang, Record<string, string>> = {
     help: "يمكنني مساعدتك في العثور على مقعدك والطعام ودورات المياه والمخارج والمواصلات — بلغتك. جرّب: «خذني إلى المقعد 214».",
     unknown: "لا أملك هذه المعلومة. مكتب الاستعلامات في الممر الشمالي (قرب البوابة A) يمكنه مساعدتك!",
     demoNote: "(وضع تجريبي — الذكاء الاصطناعي غير متصل، لكن الملاحة تعمل.)",
+    askSeat: "أخبرني برقم قسم مقعدك (مثل 214) وسأرشدك إليه.",
     notFound: "لم أجد هذا المكان. يرجى مراجعة مكتب الاستعلامات قرب البوابة A.",
   },
   pt: {
@@ -124,6 +132,7 @@ const M: Record<Lang, Record<string, string>> = {
     help: "Posso ajudar você a encontrar seu assento, comida, banheiros, saídas e transporte — no seu idioma. Tente: «Leve-me ao assento 214».",
     unknown: "Não tenho essa informação. O balcão de informações no corredor norte (perto do Portão A) pode ajudar!",
     demoNote: "(Modo demo — a IA está offline, mas a navegação funciona.)",
+    askSeat: "Diga o número da sua seção (por exemplo 214) que eu te levo até lá.",
     notFound: "Não encontrei esse lugar. Procure o balcão de informações perto do Portão A.",
   },
   hi: {
@@ -134,6 +143,7 @@ const M: Record<Lang, Record<string, string>> = {
     help: "मैं आपकी सीट, खाना, शौचालय, निकास और परिवहन खोजने में मदद कर सकता हूँ — आपकी भाषा में। आज़माएँ: «मुझे सीट 214 तक ले चलो»।",
     unknown: "मेरे पास यह जानकारी नहीं है। गेट A के पास उत्तर गलियारे में सूचना डेस्क आपकी मदद कर सकती है!",
     demoNote: "(डेमो मोड — AI ऑफ़लाइन है, लेकिन नेविगेशन काम करता है।)",
+    askSeat: "मुझे अपनी सीट का सेक्शन नंबर बताएँ (जैसे 214), मैं आपको रास्ता दिखाऊँगा।",
     notFound: "वह जगह नहीं मिली। कृपया गेट A के पास सूचना डेस्क से पूछें।",
   },
 };
@@ -165,7 +175,10 @@ export function fallbackRespond(
   const events: ChatEvent[] = [{ type: "degraded", reason: opts.reason }];
   const from = opts.seat ? `seat ${opts.seat}` : "gate a";
   const accessibleDefault = opts.accessibilityMode ?? false;
-  const intent = resolveIntent(text);
+  let intent = resolveIntent(text);
+  // Seat context turns "take me to my seat" into a concrete route.
+  if (intent.kind === "askSeat" && opts.seat)
+    intent = { kind: "route", to: `seat ${opts.seat}`, accessible: intent.accessible };
   const say = (t: string) => events.push({ type: "text", text: t });
 
   switch (intent.kind) {
@@ -217,6 +230,9 @@ export function fallbackRespond(
       events.push({ type: "transport", options, suggestion });
       break;
     }
+    case "askSeat":
+      say(msgs.askSeat);
+      break;
     case "help":
       say(msgs.help);
       break;

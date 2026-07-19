@@ -18,6 +18,10 @@ Every significant decision recorded here. Owner: DECISION_ENGINE.
 | D-10 | Node runtime (not edge) for API routes, `maxDuration=30` on chat | Accepted | Full SDK compatibility; streaming works fine on Node; avoids edge-runtime debugging | Medium | 2026-07-19 |
 | D-11 | Cut: sustainability panel, full PWA offline, voice, real APIs (F-15/17/18/19) | Accepted | Low ROI vs. 2-day budget; see FEATURES.md Rejected table | High | 2026-07-19 |
 | D-12 | Multimodal ticket-photo (F-16) deferred to last, behind polish | Accepted | High wow but high risk; only after all Musts pass review with ≥3H spare | High | 2026-07-19 |
+| D-13 | Added a 4th tool `findNearest(kind, tags, from, accessible)` beyond the planned 3 | Accepted | "Nearest halal food" has no clean home in getDirections; magic-string args ("nearest:food:halal") are where flash models fumble — one tool per question shape | High | 2026-07-19 |
+| D-14 | Fallback language detection checks Portuguese-distinctive words BEFORE Spanish | Accepted | QA matrix caught PT→ES misdetection via shared word "está"; ordering by distinctive vocabulary fixed 2/35 failures | High | 2026-07-19 |
+| D-15 | Builds/tests run in a VM-local workdir synced from the repo; commits via local clone + ref update | Accepted | Mounted repo FS blocked mid-session file deletion (stale git locks); repo stays source of truth, build env stays fast | High | 2026-07-19 |
+| D-16 | Seat-less "my seat" queries get a canned ask-for-section reply (askSeat intent) in all 6 languages | Accepted | Judge-simulation found the first demo chip failed in degraded mode without a seat number — worst possible first impression, fixed in <30 min | High | 2026-07-19 |
 
 ---
 

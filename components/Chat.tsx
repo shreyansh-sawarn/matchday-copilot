@@ -30,7 +30,7 @@ interface UiMessage extends ChatMessage {
 }
 
 const CHIPS = [
-  { label: "🎫 Find my seat", text: "Take me to my seat from Gate A" },
+  { label: "🎫 Find seat 214", text: "Take me to seat 214 from Gate A" },
   { label: "🥙 Nearest halal food", text: "Where is the nearest halal food?" },
   { label: "♿ Step-free route", text: "I use a wheelchair. How do I get to my seat?" },
   { label: "🚇 Getting home", text: "What's the best way to get back to the city after the match?" },
