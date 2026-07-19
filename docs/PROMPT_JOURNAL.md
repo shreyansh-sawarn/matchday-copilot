@@ -104,4 +104,18 @@ Format per entry: **Prompt → First result → Refinement → Why it worked.**
 
 ---
 
+## Phase 5 — Polish, Accessibility, i18n QA
+
+**Prompt:** "Build a scripted QA matrix: 6 languages × (seat, food/restroom, wheelchair, crowd-exit, transport) + 5 adversarial probes (out-of-venue, gibberish, mixed-language, 3k-char input, near-empty). Run it against the degraded endpoint — it must pass with ZERO AI."
+
+- **First result:** 33/35. Two Portuguese probes answered in Spanish/English: "Qual saída está menos lotada?" tripped the shared word "está" (in the Spanish keyword list), and "Como volto para a cidade?" matched nothing.
+- **Refinement:** Reordered detection to check Portuguese-distinctive vocabulary (saída, banheiro, volto, cidade) BEFORE Spanish, and widened the transport intent to city/airport phrasings in all six languages. Re-run: 35/35.
+- **Why it worked:** Language detection by keyword overlap fails in order-dependent ways; testing per-language with native phrasings (not translations of one English sentence) is what surfaced it.
+
+**Accessibility as a journey, not a checkbox:** the ♿ toggle changes three things at once — 120% base font, `accessible=true` default on every routing tool call, and a simple-language system-prompt variant (short sentences, one instruction per line). Same feature, three rubric signals (persona depth, a11y, prompt craft).
+
+**Gate 5 verdict:** PASS — QA matrix 35/35, unit tests 23/23, manual a11y audit logged in NOTES.md. Lighthouse + live-model language review deferred to the deployed URL (no browser/key in build env).
+
+---
+
 *(Entries for later phases are appended as each phase completes.)*

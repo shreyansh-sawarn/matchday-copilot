@@ -18,9 +18,11 @@ export function detectLang(text: string): Lang {
   if (/[ऀ-ॿ]/.test(text)) return "hi";
   const t = ` ${text.toLowerCase()} `;
   const hit = (words: string[]) => words.some((w) => t.includes(` ${w} `) || t.includes(`${w} `) || t.includes(` ${w}`));
+  // Portuguese first: its distinctive words (saída, banheiro…) never appear in
+  // Spanish, while shared words like "está"/"como" would otherwise misfire.
+  if (hit(["onde", "assento", "banheiro", "portão", "saída", "ajuda", "chego", "volto", "cidade", "estádio", "lotada", "lotado", "próximo"])) return "pt";
   if (hit(["dónde", "donde", "asiento", "baño", "cómo", "como llego", "puerta", "comida", "salida", "ayuda", "está"])) return "es";
   if (hit(["où", "siège", "toilettes", "porte", "nourriture", "sortie", "aide", "comment"])) return "fr";
-  if (hit(["onde", "assento", "banheiro", "portão", "comida", "saída", "ajuda", "chego"])) return "pt";
   return "en";
 }
 
@@ -64,10 +66,10 @@ export function resolveIntent(text: string): Intent {
     return { kind: "nearest", poi: "medical", tags: [], accessible };
   if (/water|agua|eau|água|पानी|ماء/i.test(t)) return { kind: "nearest", poi: "water", tags: [], accessible };
   // crowd-awareness wins over plain exit routing ("which exit is least crowded?")
-  if (/crowd|busy|congest|lleno|gente|foule|monde|lotado|भीड़|زحام|مزدحم/i.test(t)) return { kind: "crowd" };
+  if (/crowd|busy|congest|llen|gente|foule|monde|bond[ée]|lotad|भीड़|زدحام|زحام|مزدحم/i.test(t)) return { kind: "crowd" };
   if (/exit|leave|salida|salir|sortie|saída|sair|निकास|बाहर|خروج|مخرج/i.test(t))
     return { kind: "nearest", poi: "exit", tags: [], accessible };
-  if (/metro|train|bus|transport|parking|home|hotel|estación|gare|casa|घर|मेट्रो|بيت|مترو|حافلة|get back|estaciona/i.test(t))
+  if (/metro|train|bus|transport|parking|home|hotel|estación|gare|casa|घर|मेट्रो|بيت|مترو|حافلة|get back|estaciona|city|ciudad|ville|cidade|शहर|مدينة|airport|aeropuerto|aéroport|aeroporto|مطار|एयरपोर्ट|vuelvo|volto|rentrer|أعود|वापस/i.test(t))
     return { kind: "transport" };
   if (/help|hello|hi|hola|bonjour|olá|मदद|नमस्ते|مرحبا|مساعدة|salut|ayuda/i.test(t)) return { kind: "help" };
   return { kind: "unknown" };

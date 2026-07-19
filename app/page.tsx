@@ -1,15 +1,19 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import type { CrowdReading, RouteResult } from "@/lib/types";
+import type { CrowdReading, RouteResult, TransportOption } from "@/lib/types";
 import Chat from "@/components/Chat";
 import StadiumMap from "@/components/StadiumMap";
 import CrowdBanner from "@/components/CrowdBanner";
+import AccessibilityToggle from "@/components/AccessibilityToggle";
+import TransportCard from "@/components/TransportCard";
 
 export default function Home() {
   const [route, setRoute] = useState<RouteResult | null>(null);
   const [crowd, setCrowd] = useState<CrowdReading[]>([]);
   const [advisory, setAdvisory] = useState<string | undefined>();
+  const [transport, setTransport] = useState<TransportOption[]>([]);
+  const [transportTip, setTransportTip] = useState<string | undefined>();
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [seat] = useState<string | undefined>(undefined);
   const [mapOpen, setMapOpen] = useState(true);
@@ -43,27 +47,26 @@ export default function Home() {
     if (adv) setAdvisory(adv);
   }, []);
 
+  const onTransport = useCallback((options: TransportOption[], suggestion?: string) => {
+    setTransport(options);
+    setTransportTip(suggestion);
+  }, []);
+
   return (
     <div className="mx-auto flex h-dvh max-w-md flex-col md:max-w-2xl">
+      <a
+        href="#chat-input"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-sky-600 focus:px-3 focus:py-2 focus:text-white"
+      >
+        Skip to chat
+      </a>
       <header className="flex items-center justify-between gap-2 border-b border-slate-800 px-4 py-2.5">
         <div className="min-w-0">
           <h1 className="truncate text-base font-bold">⚽ MatchDay Copilot</h1>
           <p className="truncate text-xs text-slate-400">Estadio Aurora · Final · France vs Brazil · 20:00</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <button
-            onClick={() => setAccessibilityMode((v) => !v)}
-            aria-pressed={accessibilityMode}
-            aria-label="Accessibility mode: large text, simple language, step-free routes"
-            title="Accessibility mode"
-            className={`rounded-lg border px-2.5 py-1.5 text-sm transition ${
-              accessibilityMode
-                ? "border-sky-400 bg-sky-500/20 text-sky-300"
-                : "border-slate-700 text-slate-300 hover:border-slate-500"
-            }`}
-          >
-            ♿
-          </button>
+          <AccessibilityToggle enabled={accessibilityMode} onChange={setAccessibilityMode} />
           <button
             onClick={() => setMapOpen((v) => !v)}
             aria-expanded={mapOpen}
@@ -81,7 +84,7 @@ export default function Home() {
         <div id="stadium-map" className="relative h-[38%] shrink-0 border-b border-slate-800 bg-slate-950">
           <StadiumMap route={route} crowd={crowd} />
           {route?.found && (
-            <p className="absolute bottom-1.5 left-1/2 -translate-x-1/2 rounded-full bg-slate-900/90 px-3 py-1 text-xs text-sky-300">
+            <p className="absolute bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-slate-900/90 px-3 py-1 text-xs text-sky-300">
               {route.accessible ? "♿ Step-free route · " : "Route · "}
               {route.totalDistance} m · {route.steps.length} steps
             </p>
@@ -89,8 +92,18 @@ export default function Home() {
         </div>
       )}
 
+      {transport.length > 0 && (
+        <TransportCard options={transport} suggestion={transportTip} onClose={() => setTransport([])} />
+      )}
+
       <main className="min-h-0 flex-1">
-        <Chat accessibilityMode={accessibilityMode} seat={seat} onRoute={setRoute} onCrowd={onCrowd} />
+        <Chat
+          accessibilityMode={accessibilityMode}
+          seat={seat}
+          onRoute={setRoute}
+          onCrowd={onCrowd}
+          onTransport={onTransport}
+        />
       </main>
     </div>
   );
