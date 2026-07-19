@@ -50,7 +50,7 @@ flowchart TD
     Gateway --> Gemini["☁️ Gemini 2.5 Flash via @google/genai"]
 ```
 
-**Key design decisions** (full log in `hackos/context/DECISIONS.md`):
+**Key design decisions** (evolution documented in [`docs/PROMPT_JOURNAL.md`](docs/PROMPT_JOURNAL.md)):
 
 - **Serverless-safe simulation** — `crowdAt(zoneId, t)` is a pure function of a 10-second time bucket (mulberry32-seeded). Every Vercel instance, the fan map, the ops heatmap, and the model's `getCrowdLevel` tool all agree without any shared state.
 - **Map and router can't disagree** — the SVG shapes and the route polyline are generated from the *same* graph coordinates.

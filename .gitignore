@@ -26,3 +26,14 @@ npm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# HackOS operator files — local build framework, not part of the submission
+hackos/
+CLAUDE.md
+claude.md
+IMPLEMENTATION_PLAN.md
+
+# editor/OS noise
+.vscode/
+.idea/
+Thumbs.db
