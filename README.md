@@ -10,7 +10,7 @@
 
 Built for **Hack2skill × Google for Developers — PromptWars**, Challenge 4: *Smart Stadiums & Tournament Operations*.
 
-🔗 **Live demo:** `<DEPLOYED_URL_PLACEHOLDER>` · **Ops dashboard:** `<DEPLOYED_URL_PLACEHOLDER>/ops`
+🔗 **Live demo:** [matchday-copilot-eta.vercel.app](https://matchday-copilot-eta.vercel.app) · **Ops dashboard:** [matchday-copilot-eta.vercel.app/ops](https://matchday-copilot-eta.vercel.app/ops)
 
 ---
 
@@ -93,7 +93,7 @@ Estadio Aurora is a **fictional venue**: the layout, POIs, routing graph, match 
 ## Local setup
 
 ```bash
-git clone <REPO_URL_PLACEHOLDER>
+git clone https://github.com/shreyansh-sawarn/matchday-copilot.git
 cd matchday-copilot
 npm install
 cp .env.example .env.local   # add your GEMINI_API_KEY (or leave empty for demo mode)

@@ -29,8 +29,8 @@ This hackathon judges how you *prompt*, so I kept a live journal of every iterat
 Full journal (with what failed first) is in the repo.
 
 **Stack:** Next.js 15 · TypeScript · Tailwind · @google/genai · Vercel
-**Live demo:** <DEPLOYED_URL_PLACEHOLDER>
-**Repo (prompt journal inside):** <REPO_URL_PLACEHOLDER>
+**Live demo:** https://matchday-copilot-eta.vercel.app
+**Repo (prompt journal inside):** https://github.com/shreyansh-sawarn/matchday-copilot
 
 Massive thanks to @Hack2skill and @Google for Developers for the push to build in public. Try it in your mother tongue and tell me where it breaks 👇
 
@@ -38,4 +38,4 @@ Massive thanks to @Hack2skill and @Google for Developers for the push to build i
 
 ---
 
-*Posting notes: tag the official Hack2skill and Google for Developers pages (the @ mentions above must be selected from LinkedIn's dropdown to become real tags). Attach 2–3 screenshots or the 30s screen-recording — the wheelchair reroute is the strongest visual. Replace both placeholder links before publishing.*
+*Posting notes: tag the official Hack2skill and Google for Developers pages (the @ mentions above must be selected from LinkedIn's dropdown to become real tags). Attach 2–3 screenshots or the 30s screen-recording — the wheelchair reroute is the strongest visual.*
