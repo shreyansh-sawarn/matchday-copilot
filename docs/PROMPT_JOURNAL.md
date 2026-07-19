@@ -118,4 +118,16 @@ Format per entry: **Prompt → First result → Refinement → Why it worked.**
 
 ---
 
-*(Entries for later phases are appended as each phase completes.)*
+## Phase 6 — Ship (README, demo assets)
+
+**Prompt:** "Write the README for a code-reviewing judge: problem → persona → architecture (mermaid) → a table of Gemini capabilities each mapped to WHERE it lives in the repo and WHY it scores. Disclose the simulated data honestly."
+
+- **First result:** A generic feature-list README — the kind every hackathon submission has.
+- **Refinement:** Reframed every section as rubric evidence: the Gemini table's third column is literally "why it matters [to a judge]", the prompt-engineering section quotes `lib/prompts.ts` verbatim, and the disclosure section pre-empts the "is this real data?" question instead of hoping it isn't asked.
+- **Why it worked:** A README is a scoring document, not documentation. The demo script got the same treatment — every beat annotated with the rubric category it targets, plus rehearsed failure drills.
+
+**Meta-lesson of the whole build:** the highest-leverage prompts were never "build X". They were constraint sentences — "state is forbidden", "tools are the only source of directions", "the accessible route must be VISIBLY different on the map", "same SSE shape with zero AI". Each one eliminated an entire failure class before any code existed.
+
+---
+
+*Journal complete — 7 phases, maintained live during the build as required by the PromptWars judging criteria.*
