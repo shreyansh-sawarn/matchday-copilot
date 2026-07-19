@@ -37,3 +37,4 @@ IMPLEMENTATION_PLAN.md
 .vscode/
 .idea/
 Thumbs.db
+.tmp*
