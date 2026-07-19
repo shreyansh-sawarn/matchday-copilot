@@ -88,4 +88,20 @@ Format per entry: **Prompt → First result → Refinement → Why it worked.**
 
 ---
 
+## Phase 4 — Ops Dashboard (stretch)
+
+**Prompt (triage):** "JSON mode + responseSchema for {severity, suggestedAction, dispatchRole}. Enums enforced twice: in the schema AND in server-side validation. One re-ask on invalid output, then a canned keyword-table triage."
+
+- **First result:** A prompt that let the model pick any severity wording ("URGENT", "Sev-2") — parse-able but not machine-actionable.
+- **Refinement:** Moved the taxonomy INTO the prompt as rules ("missing child, fire, weapons, crush ⇒ critical") and mirrored the same enums in `responseSchema`. The re-ask message quotes the validation failure back to the model.
+- **Why it worked:** JSON mode guarantees syntax; only the prompt can guarantee *semantics*. Belt-and-braces validation means the control room never sees free-text severity.
+
+**Prompt (briefing):** "Feed the model a digest of the LIVE sim state (phase, per-zone occupancy, open incidents) and forbid speculation beyond it."
+
+- **Why it worked:** Same grounding philosophy as the fan chat — the briefing is impressive precisely because every line traces to simulated data a judge can verify on the heatmap next to it.
+
+**Gate 4 verdict:** PASS — fan surface unaffected (first-load 110kB, shared chunks unchanged), all four ops endpoints verified incl. degraded fallbacks (canned triage correctly marks "child separated" as critical/security).
+
+---
+
 *(Entries for later phases are appended as each phase completes.)*

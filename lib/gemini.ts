@@ -58,6 +58,49 @@ async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise
   }
 }
 
+/**
+ * JSON-mode call for the ops surface: responseSchema-constrained output,
+ * parse + caller-side validation, ONE re-ask on invalid output, then the
+ * caller's canned fallback. 10s total budget per attempt.
+ */
+export async function generateJson<T>(
+  prompt: string,
+  schema: object,
+  validate: (x: unknown) => x is T,
+): Promise<T> {
+  const ai = client();
+  let lastErr = "";
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await withTimeout(
+        ai.models.generateContent({
+          model: MODEL_ID,
+          contents: [
+            {
+              role: "user",
+              parts: [{ text: attempt === 0 ? prompt : `${prompt}\n\nYour previous output was invalid (${lastErr}). Return ONLY valid JSON matching the schema.` }],
+            },
+          ],
+          config: {
+            responseMimeType: "application/json",
+            responseSchema: schema,
+            temperature: 0.3,
+          },
+        }),
+        10_000,
+        "json-mode timeout",
+      );
+      const text = res.text ?? "";
+      const parsed: unknown = JSON.parse(text);
+      if (validate(parsed)) return parsed;
+      lastErr = "schema validation failed";
+    } catch (e) {
+      lastErr = e instanceof Error ? e.message : "unknown error";
+    }
+  }
+  throw new GeminiUnavailable(`JSON mode failed: ${lastErr}`);
+}
+
 interface StreamOpts {
   messages: ChatMessage[];
   accessibilityMode?: boolean;

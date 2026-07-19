@@ -138,6 +138,71 @@ export const toolDeclarations: FunctionDeclaration[] = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Ops surface (stretch, F-12..F-14): JSON-mode prompts + response schemas.
+// responseSchema forces valid JSON; server code still validates before use.
+// ---------------------------------------------------------------------------
+
+export const triagePrompt = (report: string, zoneName: string, crowdLevel: string) =>
+  `You are the duty operations manager at a 58,000-seat stadium during the FIFA World Cup Final.
+Triage this incident report and respond with JSON only.
+
+Incident: "${report}"
+Zone: ${zoneName} (current crowd level: ${crowdLevel})
+
+Rules:
+- severity: low | medium | high | critical. Anything involving a missing child, fire, structural risk, weapons or crush conditions is critical.
+- suggestedAction: ONE concrete first action for the control room, max 25 words.
+- dispatchRole: steward | medical | security | cleaning | engineering — the single best first responder.`;
+
+export const triageSchema = {
+  type: Type.OBJECT,
+  properties: {
+    severity: { type: Type.STRING, enum: ["low", "medium", "high", "critical"] },
+    suggestedAction: { type: Type.STRING },
+    dispatchRole: {
+      type: Type.STRING,
+      enum: ["steward", "medical", "security", "cleaning", "engineering"],
+    },
+  },
+  required: ["severity", "suggestedAction", "dispatchRole"],
+};
+
+export const briefingPrompt = (state: string) =>
+  `You are the stadium operations chief writing a shift briefing during the FIFA World Cup Final at Estadio Aurora.
+Current simulation state:
+${state}
+
+Write JSON only: a crisp control-room briefing. No speculation beyond the given state; keep each bullet under 20 words.`;
+
+export const briefingSchema = {
+  type: Type.OBJECT,
+  properties: {
+    headline: { type: Type.STRING },
+    bullets: { type: Type.ARRAY, items: { type: Type.STRING } },
+    watchouts: { type: Type.ARRAY, items: { type: Type.STRING } },
+  },
+  required: ["headline", "bullets", "watchouts"],
+};
+
+export const announcePrompt = (message: string) =>
+  `Translate this stadium PA/push announcement into all six languages. Keep it calm, clear, and under 30 words per language. Preserve gate letters (A, B, C, D) and numbers exactly. JSON only.
+
+Announcement: "${message}"`;
+
+export const announceSchema = {
+  type: Type.OBJECT,
+  properties: {
+    en: { type: Type.STRING },
+    es: { type: Type.STRING },
+    fr: { type: Type.STRING },
+    ar: { type: Type.STRING },
+    pt: { type: Type.STRING },
+    hi: { type: Type.STRING },
+  },
+  required: ["en", "es", "fr", "ar", "pt", "hi"],
+};
+
 /**
  * Few-shot nudges appended as the first user/model exchange so flash reliably
  * picks tools over prose. Kept to ONE pair to protect latency.
