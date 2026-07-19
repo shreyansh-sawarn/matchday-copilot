@@ -50,4 +50,28 @@ Format per entry: **Prompt → First result → Refinement → Why it worked.**
 
 ---
 
+## Phase 2 — Fan Chat (Gemini + tools + fallback)
+
+**Prompt (system prompt design):** "Write the steward system prompt. Constraint: every navigational fact must come from a tool; venue facts only from a <1.5k-token KB digest; unknown → say so + Information Desk. Reply in the user's language, always."
+
+- **First result:** A prompt that *described* grounding ("be accurate, don't hallucinate") — vague virtue-signalling the model can ignore.
+- **Refinement:** Rewrote rules as numbered prohibitions with named tools ("Directions… MUST come from getDirections… NEVER invent a route, gate, distance") and added rule 3: admit the data is simulated if asked. Added a single Spanish few-shot exchange showing tool-call-then-answer, because flash models copy demonstrated behavior far better than described behavior.
+- **Why it worked:** Prohibitions + one worked example beats paragraphs of guidance. The few-shot is deliberately in Spanish — it simultaneously teaches tool use AND reply-in-user's-language.
+
+**Prompt (tool schemas):** "Declare getDirections/findNearest/getCrowdLevel/getTransport with flat string/boolean args only."
+
+- **First result:** The initial plan had 3 tools; 'nearest halal food' had no clean home (getDirections can't search by kind+tag).
+- **Refinement:** Added a 4th tool `findNearest(kind, tags, from, accessible)` instead of overloading `to` with magic strings like "nearest:food:halal". Logged as D-13.
+- **Why it worked:** One tool per question shape keeps flash's tool choice reliable; magic-string args are where flash models fumble.
+
+**Prompt (degraded mode):** "The fallback resolver must emit the exact same SSE event shapes as the AI path, driven by the same lib/venue.ts routing."
+
+- **First result:** Intent regexes misrouted "Which exit is least crowded?" to plain exit-routing (exit keyword matched before crowd keyword) — caught by the new fallback test suite, 1 failure out of 23.
+- **Refinement:** Reordered intent precedence: crowd-awareness beats exit routing. Also localized POI kind names after the smoke test produced Spanglish ("El restroom más cercano").
+- **Why it worked:** Testing canned answers like real features (23 unit tests, 6 languages) treats demo-survival as a first-class product, not an afterthought — it's also the rubric's edge-case bonus.
+
+**Gate 2 note:** SSE verified end-to-end in degraded mode (seat route + Spanish restroom probes). The 10 scripted live-Gemini grounding probes require a GEMINI_API_KEY and are deferred to first deploy — logged in NOTES.md.
+
+---
+
 *(Entries for later phases are appended as each phase completes.)*
