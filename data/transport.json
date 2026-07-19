@@ -1,0 +1,72 @@
+[
+  {
+    "id": "t-metro-1",
+    "mode": "metro",
+    "name": "Metro Línea 1 — Estadio Norte",
+    "description": "Direct line to Centro Histórico and main rail station. Station is north of the stadium.",
+    "frequencyMin": 4,
+    "walkMinutesFromGate": 8,
+    "nearestGate": "Gate A",
+    "surgeNote": "Extremely busy for ~45 minutes after the final whistle. If your seat is on the west side, Línea 3 from Gate D is usually faster."
+  },
+  {
+    "id": "t-metro-3",
+    "mode": "metro",
+    "name": "Metro Línea 3 — Avenida Poniente",
+    "description": "Connects to the west of the city with interchange to Línea 1 downtown.",
+    "frequencyMin": 6,
+    "walkMinutesFromGate": 10,
+    "nearestGate": "Gate D",
+    "surgeNote": "The quieter post-match option — queues are typically half those at Estadio Norte."
+  },
+  {
+    "id": "t-bus-45",
+    "mode": "bus",
+    "name": "Bus 45 — Airport Express",
+    "description": "Limited-stop service to Guadalajara International Airport (~40 min).",
+    "frequencyMin": 15,
+    "walkMinutesFromGate": 6,
+    "nearestGate": "Gate B",
+    "surgeNote": "Extra services run for 90 minutes after full-time. Allow 3+ hours before any flight."
+  },
+  {
+    "id": "t-bus-12",
+    "mode": "bus",
+    "name": "Bus 12 — City Loop",
+    "description": "Circular route serving hotels district and Chapultepec nightlife zone.",
+    "frequencyMin": 10,
+    "walkMinutesFromGate": 6,
+    "nearestGate": "Gate C",
+    "surgeNote": "Busy but moves quickly; stands are 5 minutes south of Gate C."
+  },
+  {
+    "id": "t-bus-88",
+    "mode": "bus",
+    "name": "Bus 88 — Park & Ride",
+    "description": "Shuttle to the remote Park & Ride lots (free with match ticket).",
+    "frequencyMin": 8,
+    "walkMinutesFromGate": 5,
+    "nearestGate": "Gate C",
+    "surgeNote": "Runs continuously after the match until lots are clear."
+  },
+  {
+    "id": "t-park-p1",
+    "mode": "parking",
+    "name": "Parking Lot P1 (East)",
+    "description": "Pre-booked match-day parking, 900 spaces. Entry from Avenida Oriente.",
+    "frequencyMin": null,
+    "walkMinutesFromGate": 12,
+    "nearestGate": "Gate B",
+    "surgeNote": "Exit queues peak 20–50 minutes after full-time; waiting 30 minutes roughly halves your queue time."
+  },
+  {
+    "id": "t-park-p2",
+    "mode": "parking",
+    "name": "Parking Lot P2 (South)",
+    "description": "Pre-booked parking with accessible bays nearest Gate C.",
+    "frequencyMin": null,
+    "walkMinutesFromGate": 10,
+    "nearestGate": "Gate C",
+    "surgeNote": "Accessible-bay holders may use the priority exit lane southbound."
+  }
+]

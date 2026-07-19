@@ -34,4 +34,20 @@ Format per entry: **Prompt → First result → Refinement → Why it worked.**
 
 ---
 
+## Phase 1 — Data + Simulation
+
+**Prompt:** "Author venue.json: 8 zones, 4 gates, ~28 POIs (halal/veg tags, prayer room, medical), seat sections 101–130 / 201–230, and a ~37-node waypoint graph where stairs and lifts are separate edges with an `accessible` flag. Wheelchair routing must be the SAME algorithm with a filtered edge set, not a special case."
+
+- **First result:** A graph where the lift path was *shorter* than the stairs path — so every route used the lift and the wheelchair demo was indistinguishable from the normal one.
+- **Refinement:** "Tune edge distances so stairs (15+18 m) beat the lift detour (40+15 m) for walking users. The accessible filter must visibly change the path on the map." Also asked for a graph-integrity test: *every* POI reachable from *every* gate, in both normal and step-free mode.
+- **Why it worked:** Making the demo contrast ("visibly different path") an explicit requirement turned a data-tuning subtlety into a testable acceptance criterion. All 15 unit tests passed first run.
+
+**Prompt (simulation):** "crowdAt(zoneId, t) must tell a story: plaza surges at ingress, bowl fills during halves, concourses spike at half-time, egress floods gates. Deterministic per 10s bucket."
+
+- **First result:** Uniform random noise — statistically fine, narratively dead.
+- **Refinement:** Provided a phase table (quiet/ingress/first-half/half-time/second-half/egress) with hand-tuned per-zone base occupancy, plus seeded ±12% wobble. Tests assert the narrative ("seats > 0.6 during first half").
+- **Why it worked:** Giving the model the dramaturgy (what a judge should *see*) instead of a statistics spec produced advisories worth demoing — "Gate B congested, use Gate D" now emerges from data.
+
+---
+
 *(Entries for later phases are appended as each phase completes.)*
