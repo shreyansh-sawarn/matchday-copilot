@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+:root {
+  --pitch: #1a7a4c;
+  --night: #0b1220;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--night);
+  color: #e6edf6;
+}
+
+/* Large-text accessibility mode (toggled on <html>) */
+.a11y-large {
+  font-size: 120%;
+}
+
+/* Visible focus for keyboard users — WCAG 2.4.7 */
+:focus-visible {
+  outline: 3px solid #7cc4ff;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Route path animation on the stadium map */
+.route-path {
+  stroke-dasharray: 10 6;
+  animation: march 1.2s linear infinite;
+}
+
+@keyframes march {
+  to {
+    stroke-dashoffset: -32;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-path {
+    animation: none;
+  }
+}
