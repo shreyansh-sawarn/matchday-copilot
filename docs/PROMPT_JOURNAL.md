@@ -74,4 +74,18 @@ Format per entry: **Prompt → First result → Refinement → Why it worked.**
 
 ---
 
+## Phase 3 — SVG Map + Navigation
+
+**Prompt:** "Author the stadium as concentric ellipse bands whose geometry is COMPUTED from the same coordinates the routing graph uses. Concourse quadrants must be separately fillable for crowd shading. Timebox: 1.5h."
+
+- **First result:** The obvious approach — hand-drawing static `<path>` data — would have blown the timebox and drifted from graph node coordinates (map showing a route walking through walls).
+- **Refinement:** Asked for parametric helpers instead: `band(a1,b1,a2,b2,t1,t2)` and `ring(...)` that emit elliptical-arc path data at render time, with ring radii chosen to enclose the graph's node coordinates (e.g. upper-tier nodes at a=408 sit inside the 390–430 band).
+- **Why it worked:** "The graph's SVG coordinates drive both the shapes and the polyline" makes map/data disagreement structurally impossible — the single-source-of-truth rule applied to pixels, not just facts.
+
+**Wiring insight:** no new protocol was needed — the `route` SSE event defined in Phase 0's `ChatEvent` type just gets a second consumer (the map) next to the chat text. Crowd shading reuses `/api/crowd` polling at the simulation's native 10s bucket, so the map ticks in lockstep with what `getCrowdLevel` tells the model.
+
+**Gate 3 verdict (REVIEW_ENGINE):** PASS — build green, 23 tests green, SSE→map data flow verified incl. Hindi wheelchair probe in degraded mode; live-Gemini probes still deferred pending an API key at deploy. ≥5H budget spare → Phase 4 (ops) permitted per D-01 gate.
+
+---
+
 *(Entries for later phases are appended as each phase completes.)*
