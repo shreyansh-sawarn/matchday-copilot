@@ -6,8 +6,13 @@
  */
 
 import type { ChatEvent, PoiKind, TransportOption } from "@/lib/types";
-import { nearestPoi, route, todayMatch, transportOptions } from "@/lib/venue";
+import { fixtureById, nearestPoi, route, transportOptions } from "@/lib/venue";
 import { allCrowd, bestGateAdvice, crowdAt, matchPhase } from "@/lib/simulation";
+
+/** Server-side context threaded into tool execution (never model-controlled). */
+export interface ToolContext {
+  matchId?: string;
+}
 
 export interface ToolOutcome {
   /** Compact JSON returned to the model as functionResponse. */
@@ -29,19 +34,23 @@ function bool(v: unknown): boolean {
 }
 
 /** Suggested departure strategy from simulated crowd state. */
-export function transportSuggestion(t: number = Date.now()): string {
-  const m = todayMatch();
+export function transportSuggestion(t: number = Date.now(), matchId?: string): string {
+  const m = fixtureById(matchId);
   const finalWhistle = new Date(new Date(m.kickoff).getTime() + 110 * 60_000);
   const hhmm = finalWhistle.toLocaleTimeString("en-GB", {
     hour: "2-digit", minute: "2-digit", timeZone: "America/Mexico_City",
   });
-  const phase = matchPhase(t);
+  const phase = matchPhase(t, matchId);
   if (phase === "egress")
     return `Crowds are leaving now. Metro Línea 1 is at its peak — Línea 3 from Gate D or waiting ~25 minutes is usually faster overall.`;
   return `Full-time is expected around ${hhmm}. Leaving 10 minutes early or 30 minutes late roughly halves your queue time at the metro.`;
 }
 
-export function executeTool(name: string, rawArgs: Record<string, unknown>): ToolOutcome {
+export function executeTool(
+  name: string,
+  rawArgs: Record<string, unknown>,
+  ctx: ToolContext = {},
+): ToolOutcome {
   switch (name) {
     case "getDirections": {
       const to = str(rawArgs.to).trim();
@@ -104,11 +113,11 @@ export function executeTool(name: string, rawArgs: Record<string, unknown>): Too
     case "getCrowdLevel": {
       const zoneId = str(rawArgs.zoneId).trim();
       const now = Date.now();
-      const readings = zoneId ? [crowdAt(zoneId, now)] : allCrowd(now);
-      const advisory = bestGateAdvice(now);
+      const readings = zoneId ? [crowdAt(zoneId, now, ctx.matchId)] : allCrowd(now, ctx.matchId);
+      const advisory = bestGateAdvice(now, ctx.matchId);
       return {
         forModel: {
-          phase: matchPhase(now),
+          phase: matchPhase(now, ctx.matchId),
           readings: readings.map((r) => ({ zone: r.zoneName, level: r.level, occupancy: r.occupancy })),
           gateAdvice: advisory,
         },
@@ -123,7 +132,7 @@ export function executeTool(name: string, rawArgs: Record<string, unknown>): Too
         mode === "metro" || mode === "bus" || mode === "parking"
           ? all.filter((o) => o.mode === mode)
           : all;
-      const suggestion = transportSuggestion();
+      const suggestion = transportSuggestion(Date.now(), ctx.matchId);
       return {
         forModel: {
           options: options.map((o) => ({

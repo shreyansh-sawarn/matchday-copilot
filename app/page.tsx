@@ -2,11 +2,23 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { CrowdReading, RouteResult, TransportOption } from "@/lib/types";
+import { matches } from "@/lib/venue";
 import Chat from "@/components/Chat";
 import StadiumMap from "@/components/StadiumMap";
 import CrowdBanner from "@/components/CrowdBanner";
 import AccessibilityToggle from "@/components/AccessibilityToggle";
 import TransportCard from "@/components/TransportCard";
+
+const FIXTURES = matches();
+const TODAY = FIXTURES.find((f) => f.isToday) ?? FIXTURES[0];
+
+function kickoffLabel(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Mexico_City",
+  });
+}
 
 export default function Home() {
   const [route, setRoute] = useState<RouteResult | null>(null);
@@ -17,18 +29,21 @@ export default function Home() {
   const [accessibilityMode, setAccessibilityMode] = useState(false);
   const [seat] = useState<string | undefined>(undefined);
   const [mapOpen, setMapOpen] = useState(true);
+  const [matchId, setMatchId] = useState(TODAY.id);
+
+  const fixture = FIXTURES.find((f) => f.id === matchId) ?? TODAY;
 
   // Poll the deterministic crowd simulation every 10s (one tick bucket).
   useEffect(() => {
     let alive = true;
     const load = async () => {
       try {
-        const res = await fetch("/api/crowd");
+        const res = await fetch(`/api/crowd?match=${encodeURIComponent(matchId)}`);
         if (!res.ok) return;
         const data = (await res.json()) as { readings: CrowdReading[]; advisory?: string };
         if (alive) {
           setCrowd(data.readings);
-          setAdvisory((a) => a ?? data.advisory);
+          setAdvisory(data.advisory);
         }
       } catch {
         /* non-fatal */
@@ -40,7 +55,7 @@ export default function Home() {
       alive = false;
       clearInterval(id);
     };
-  }, []);
+  }, [matchId]);
 
   const onCrowd = useCallback((readings: CrowdReading[], adv?: string) => {
     setCrowd(readings);
@@ -63,7 +78,22 @@ export default function Home() {
       <header className="flex items-center justify-between gap-2 border-b border-slate-800 px-4 py-2.5">
         <div className="min-w-0">
           <h1 className="truncate text-base font-bold">⚽ MatchDay Copilot</h1>
-          <p className="truncate text-xs text-slate-400">Estadio Aurora · Final · France vs Brazil · 20:00</p>
+          <label htmlFor="match-select" className="sr-only">
+            Select match
+          </label>
+          <select
+            id="match-select"
+            value={matchId}
+            onChange={(e) => setMatchId(e.target.value)}
+            className="mt-0.5 max-w-full truncate rounded-md border border-transparent bg-transparent text-xs text-slate-400 hover:border-slate-700 focus:border-sky-500"
+          >
+            {FIXTURES.map((f) => (
+              <option key={f.id} value={f.id} className="bg-slate-900 text-slate-200">
+                Estadio Aurora · {f.stage} · {f.home} vs {f.away} · {kickoffLabel(f.kickoff)}
+                {f.isToday ? "" : " (replay)"}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <AccessibilityToggle enabled={accessibilityMode} onChange={setAccessibilityMode} />
@@ -100,6 +130,7 @@ export default function Home() {
         <Chat
           accessibilityMode={accessibilityMode}
           seat={seat}
+          matchId={fixture.id}
           onRoute={setRoute}
           onCrowd={onCrowd}
           onTransport={onTransport}

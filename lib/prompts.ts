@@ -15,7 +15,9 @@ import { kbDigest } from "@/lib/venue";
 export const MODEL_ID = "gemini-2.5-flash";
 
 /** Core steward persona + grounding rules. */
-export function systemPrompt(opts: { accessibilityMode?: boolean; seat?: string } = {}): string {
+export function systemPrompt(
+  opts: { accessibilityMode?: boolean; seat?: string; matchId?: string } = {},
+): string {
   const base = `You are MatchDay Copilot, a friendly, calm stadium steward at ${"Estadio Aurora"} helping fans on match day.
 
 LANGUAGE — most important rule:
@@ -33,7 +35,7 @@ STYLE:
 - If the fan sounds distressed (lost child, medical issue), lead with the nearest steward + First Aid Station and keep instructions very simple.
 
 VENUE KNOWLEDGE (digest — detail lives behind tools):
-${kbDigest()}`;
+${kbDigest(opts.matchId)}`;
 
   const seatCtx = opts.seat
     ? `\n\nCONTEXT: The fan's ticket shows seat section ${opts.seat}. When they say "my seat", use section ${opts.seat}.`

@@ -20,6 +20,7 @@ import MessageBubble from "@/components/MessageBubble";
 interface ChatProps {
   accessibilityMode: boolean;
   seat?: string;
+  matchId?: string;
   onRoute?: (route: RouteResult) => void;
   onCrowd?: (readings: CrowdReading[], advisory?: string) => void;
   onTransport?: (options: TransportOption[], suggestion?: string) => void;
@@ -38,7 +39,7 @@ const CHIPS = [
   { label: "🚪 Quiet exit", text: "Which exit will be least crowded after the final whistle?" },
 ];
 
-export default function Chat({ accessibilityMode, seat, onRoute, onCrowd, onTransport }: ChatProps) {
+export default function Chat({ accessibilityMode, seat, matchId, onRoute, onCrowd, onTransport }: ChatProps) {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -64,7 +65,7 @@ export default function Chat({ accessibilityMode, seat, onRoute, onCrowd, onTran
         const res = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: history, accessibilityMode, seat }),
+          body: JSON.stringify({ messages: history, accessibilityMode, seat, matchId }),
         });
         if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
         const reader = res.body.getReader();
@@ -130,7 +131,7 @@ export default function Chat({ accessibilityMode, seat, onRoute, onCrowd, onTran
         setAnnounce(reply);
       }
     },
-    [accessibilityMode, busy, messages, onCrowd, onRoute, onTransport, seat],
+    [accessibilityMode, busy, matchId, messages, onCrowd, onRoute, onTransport, seat],
   );
 
   return (

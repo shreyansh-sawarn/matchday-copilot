@@ -168,7 +168,7 @@ const KIND_NAMES: Record<Lang, Partial<Record<PoiKind, string>>> = {
  */
 export function fallbackRespond(
   text: string,
-  opts: { seat?: string; accessibilityMode?: boolean; reason: string },
+  opts: { seat?: string; accessibilityMode?: boolean; matchId?: string; reason: string },
 ): ChatEvent[] {
   const lang = detectLang(text);
   const msgs = M[lang];
@@ -214,10 +214,11 @@ export function fallbackRespond(
       break;
     }
     case "crowd": {
-      const readings = allCrowd();
+      const now = Date.now();
+      const readings = allCrowd(now, opts.matchId);
       const busiest = [...readings].sort((a, b) => b.occupancy - a.occupancy)[0];
       const summary = `${busiest.zoneName}: ${busiest.level}`;
-      const advice = bestGateAdvice();
+      const advice = bestGateAdvice(now, opts.matchId);
       say(fill(msgs.crowd, { summary, advice }));
       events.push({ type: "crowd", readings, advisory: advice });
       break;
@@ -225,7 +226,7 @@ export function fallbackRespond(
     case "transport": {
       const options = transportOptions();
       const names = options.slice(0, 3).map((o) => o.name).join(", ");
-      const suggestion = transportSuggestion();
+      const suggestion = transportSuggestion(Date.now(), opts.matchId);
       say(fill(msgs.transport, { options: names, suggestion }));
       events.push({ type: "transport", options, suggestion });
       break;

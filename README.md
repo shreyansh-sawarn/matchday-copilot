@@ -27,6 +27,7 @@ A mobile-first copilot that answers in **the fan's own language** (tested in Eng
 - 🗺️ **Real navigation, not chat theatre** — Gemini calls `getDirections`/`findNearest`; a Dijkstra router over a hand-authored waypoint graph computes the path; the app draws it on an SVG stadium map with numbered steps.
 - ♿ **Accessibility as a first-class journey** — one toggle switches to large text, a simple-language prompt variant, and step-free routing (same algorithm, stairs-free edge set → lifts and ramps).
 - 📊 **Crowd-aware advice** — a deterministic, seeded crowd simulation drives "Gate B is congested, use Gate D" advisories, map heat-shading, and post-match transport strategy.
+- 🗓️ **Match selector** — switch between the final and the semi-final *replays* (header dropdown): past fixtures map the current time-of-day onto their match day, so each fixture shows different live crowd dynamics, and the chat's crowd/transport tools follow the selected match.
 - 🚇 **Getting home** — metro/bus/parking options with surge notes and a departure-timing suggestion.
 - 🎛️ **Ops dashboard (stretch)** — live heatmap, simulated incident feed with **JSON-mode triage**, one-click shift briefings, and PA announcements translated into 6 languages.
 - ⚡ **A demo that cannot hard-fail** — with no API key, on quota exhaustion, or on any Gemini error, a keyword-intent resolver answers the core journeys with canned multilingual text and the **same real routing engine**. The UI shows a subtle "demo mode" badge; navigation never breaks.

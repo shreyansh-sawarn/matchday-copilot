@@ -70,6 +70,11 @@ export function todayMatch(): MatchFixture {
   return m;
 }
 
+/** Fixture by id, falling back to today's match for unknown/absent ids. */
+export function fixtureById(id?: string): MatchFixture {
+  return matches().find((f) => f.id === id) ?? todayMatch();
+}
+
 export function transportOptions(): TransportOption[] {
   return transportJson as TransportOption[];
 }
@@ -271,7 +276,7 @@ export function nearestPoi(
 }
 
 /** Compact KB digest for the system prompt (kept < ~1.5k tokens by design). */
-export function kbDigest(): string {
+export function kbDigest(matchId?: string): string {
   const gateList = venue.pois
     .filter((p) => p.kind === "gate")
     .map((p) => p.name)
@@ -280,13 +285,13 @@ export function kbDigest(): string {
     .filter((p) => p.kind === "food")
     .map((p) => `${p.name}${p.tags.length ? ` [${p.tags.join(", ")}]` : ""} — ${zoneById(p.zoneId)?.name}`)
     .join("; ");
-  const m = todayMatch();
+  const m = fixtureById(matchId);
   const faqDigest = faqs()
     .map((f) => `Q: ${f.question} A: ${f.answer}`)
     .join("\n");
   return [
     `Venue: ${venue.name}, ${venue.city} (capacity ${venue.capacity.toLocaleString("en-US")}). NOTE: simulated demo venue.`,
-    `Today's match: ${m.stage} — ${m.home} vs ${m.away}, kickoff ${m.kickoff}.`,
+    `Selected match: ${m.stage} — ${m.home} vs ${m.away}, kickoff ${m.kickoff}${m.isToday ? " (today)" : " (replay)"}.`,
     `Gates: ${gateList}. Gate D has the widest accessible entrance.`,
     `Seating: lower bowl sections 101–130, upper tier sections 201–230. Wheelchair platform: Lower Bowl West (123–130).`,
     `Food: ${foodList}.`,

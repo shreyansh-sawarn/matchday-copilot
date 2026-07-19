@@ -8,7 +8,7 @@
  */
 
 import type { CrowdLevel, CrowdReading } from "@/lib/types";
-import { todayMatch, zoneById, zones } from "@/lib/venue";
+import { fixtureById, zoneById, zones } from "@/lib/venue";
 
 /** Classic mulberry32 PRNG — tiny, fast, deterministic. */
 export function mulberry32(seed: number): () => number {
@@ -45,10 +45,20 @@ export type MatchPhase =
   | "second-half"
   | "egress";
 
-/** Match phase from wall-clock time relative to today's kickoff. */
-export function matchPhase(t: number): MatchPhase {
-  const kickoff = new Date(todayMatch().kickoff).getTime();
-  const mins = (t - kickoff) / 60_000;
+/**
+ * Match phase from wall-clock time relative to the fixture's kickoff.
+ * Today's fixture uses absolute time. Past fixtures act as REPLAYS: the date
+ * is folded out (mod 24h) so the current time-of-day maps onto that match
+ * day — selecting a semi-final shows its crowd dynamics live.
+ */
+export function matchPhase(t: number, matchId?: string): MatchPhase {
+  const fixture = fixtureById(matchId);
+  const kickoff = new Date(fixture.kickoff).getTime();
+  let mins = (t - kickoff) / 60_000;
+  if (!fixture.isToday) {
+    mins = ((mins % 1440) + 1440) % 1440; // fold out whole days → [0, 1440)
+    if (mins >= 720) mins -= 1440; //        → [-720, 720)
+  }
   if (mins < -180) return "quiet";
   if (mins < 0) return "ingress";
   if (mins < 45) return "first-half";
@@ -104,11 +114,11 @@ function levelOf(occupancy: number): CrowdLevel {
  * Deterministic: same zone + same 10s bucket → identical result, across
  * processes and machines.
  */
-export function crowdAt(zoneId: string, t: number = Date.now()): CrowdReading {
+export function crowdAt(zoneId: string, t: number = Date.now(), matchId?: string): CrowdReading {
   const zone = zoneById(zoneId);
-  const phase = matchPhase(t);
+  const phase = matchPhase(t, matchId);
   const base = PHASE_BASE[phase][zoneId] ?? 0.1;
-  const rand = mulberry32(hashString(`${zoneId}:${bucketOf(t)}`));
+  const rand = mulberry32(hashString(`${fixtureById(matchId).id}:${zoneId}:${bucketOf(t)}`));
   // ±12% organic wobble + slow sinusoidal drift within the phase
   const wobble = (rand() - 0.5) * 0.24;
   const drift = Math.sin(bucketOf(t) / 30 + hashString(zoneId) % 7) * 0.06;
@@ -122,12 +132,12 @@ export function crowdAt(zoneId: string, t: number = Date.now()): CrowdReading {
 }
 
 /** All zone readings at time t (map shading + ops heatmap). */
-export function allCrowd(t: number = Date.now()): CrowdReading[] {
-  return zones().map((z) => crowdAt(z.id, t));
+export function allCrowd(t: number = Date.now(), matchId?: string): CrowdReading[] {
+  return zones().map((z) => crowdAt(z.id, t, matchId));
 }
 
 /** Least-crowded gate right now — powers "which exit should I use?" advice. */
-export function bestGateAdvice(t: number = Date.now()): string {
+export function bestGateAdvice(t: number = Date.now(), matchId?: string): string {
   const gateZones: Array<[string, string]> = [
     ["Gate A (North)", "concourse-north"],
     ["Gate B (East)", "concourse-east"],
@@ -135,7 +145,7 @@ export function bestGateAdvice(t: number = Date.now()): string {
     ["Gate D (West)", "concourse-west"],
   ];
   const ranked = gateZones
-    .map(([gate, zone]) => ({ gate, reading: crowdAt(zone, t) }))
+    .map(([gate, zone]) => ({ gate, reading: crowdAt(zone, t, matchId) }))
     .sort((a, b) => a.reading.occupancy - b.reading.occupancy);
   const best = ranked[0];
   const worst = ranked[ranked.length - 1];

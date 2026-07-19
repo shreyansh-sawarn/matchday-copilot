@@ -42,6 +42,7 @@ interface ChatBody {
   messages: ChatMessage[];
   accessibilityMode?: boolean;
   seat?: string;
+  matchId?: string;
 }
 
 function validBody(x: unknown): x is ChatBody {
@@ -72,6 +73,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     return Response.json({ error: "Invalid body" }, { status: 400 });
   }
   const { messages, accessibilityMode, seat } = body;
+  const matchId = typeof body.matchId === "string" ? body.matchId.slice(0, 40) : undefined;
   const lastUser = [...messages].reverse().find((m) => m.role === "user");
   if (!lastUser) return Response.json({ error: "No user message" }, { status: 400 });
 
@@ -84,15 +86,15 @@ export async function POST(req: NextRequest): Promise<Response> {
       try {
         if (rateLimited || !process.env.GEMINI_API_KEY) {
           const reason = rateLimited ? "rate-limited" : "no-api-key";
-          for (const e of fallbackRespond(lastUser.text, { seat, accessibilityMode, reason })) emit(e);
+          for (const e of fallbackRespond(lastUser.text, { seat, accessibilityMode, matchId, reason })) emit(e);
         } else {
           try {
-            for await (const e of streamChat({ messages, accessibilityMode, seat })) emit(e);
+            for await (const e of streamChat({ messages, accessibilityMode, seat, matchId })) emit(e);
             emit({ type: "done" });
           } catch (err) {
             // Any Gemini failure → canned resolver, same event shape.
             const reason = err instanceof GeminiUnavailable ? err.message : "upstream error";
-            for (const e of fallbackRespond(lastUser.text, { seat, accessibilityMode, reason })) emit(e);
+            for (const e of fallbackRespond(lastUser.text, { seat, accessibilityMode, matchId, reason })) emit(e);
           }
         }
       } catch {

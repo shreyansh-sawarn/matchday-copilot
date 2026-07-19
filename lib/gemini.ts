@@ -105,6 +105,7 @@ interface StreamOpts {
   messages: ChatMessage[];
   accessibilityMode?: boolean;
   seat?: string;
+  matchId?: string;
 }
 
 async function startStream(ai: GoogleGenAI, contents: Content[], opts: StreamOpts) {
@@ -115,6 +116,7 @@ async function startStream(ai: GoogleGenAI, contents: Content[], opts: StreamOpt
       systemInstruction: systemPrompt({
         accessibilityMode: opts.accessibilityMode,
         seat: opts.seat,
+        matchId: opts.matchId,
       }),
       tools: [{ functionDeclarations: toolDeclarations }],
       temperature: 0.4,
@@ -198,7 +200,7 @@ export async function* streamChat(opts: StreamOpts): AsyncGenerator<ChatEvent> {
     // Execute tools, surface structured events, then continue the loop.
     const responseParts: Part[] = [];
     for (const call of calls) {
-      const outcome = executeTool(call.name, call.args);
+      const outcome = executeTool(call.name, call.args, { matchId: opts.matchId });
       if (outcome.event) yield outcome.event;
       responseParts.push({
         functionResponse: { name: call.name, response: outcome.forModel },

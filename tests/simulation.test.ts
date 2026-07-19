@@ -45,6 +45,24 @@ describe("matchPhase", () => {
   });
 });
 
+describe("matchPhase (replay fixtures)", () => {
+  it("maps time-of-day onto past fixtures, ignoring the date", () => {
+    // semi-1 kicked off 17:00 on Jul 14 → 17:30 on Jul 19 replays as first-half
+    expect(matchPhase(new Date("2026-07-19T17:30:00-06:00").getTime(), "m-semi-1")).toBe("first-half");
+    // semi-2 kicks off 21:30 → 21:00 replays as ingress
+    expect(matchPhase(new Date("2026-07-19T21:00:00-06:00").getTime(), "m-semi-2")).toBe("ingress");
+    // unknown id falls back to today's fixture
+    expect(matchPhase(new Date("2026-07-19T20:30:00-06:00").getTime(), "bogus")).toBe("first-half");
+  });
+
+  it("different fixtures give different crowd readings at the same instant", () => {
+    const t = new Date("2026-07-19T17:30:00-06:00").getTime();
+    const final = crowdAt("seating-lower", t, "m-final"); // quiet/ingress for 20:00 KO
+    const semi1 = crowdAt("seating-lower", t, "m-semi-1"); // first-half replay (bowl ~0.9)
+    expect(semi1.occupancy).toBeGreaterThan(final.occupancy);
+  });
+});
+
 describe("allCrowd", () => {
   it("returns one reading per zone", () => {
     expect(allCrowd(Date.now())).toHaveLength(8);
